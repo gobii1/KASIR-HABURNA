@@ -2,6 +2,8 @@
 <?php
 include 'authcheck.php';
 
+$error_message = '';
+
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
 
@@ -18,6 +20,9 @@ if (isset($_POST['update'])) {
     $harga = $_POST['harga'];
     $jumlah = $_POST['jumlah'];
 
+	if (empty($nama) || empty($kode_barang) || empty($harga) || empty($jumlah)) {
+        $error_message = 'Silahkan Isi Kolom dengan Benar';
+    } else {
     // Menyimpan ke database;
     mysqli_query($dbconnect, "UPDATE barang SET nama='$nama', harga='$harga', jumlah='$jumlah', kode_barang='$kode_barang' where id_barang='$id' ");
 
@@ -25,12 +30,20 @@ if (isset($_POST['update'])) {
 
     // mengalihkan halaman ke list barang
     header('location: index.php?page=barang');
+	}
 }
 
 ?>
 
 <div class="container">
 	<h1>Edit Barang</h1>
+
+	<?php if ($error_message): ?>
+        <div class="alert alert-danger" role="alert">
+            <?= $error_message; ?>
+        </div>
+    <?php endif; ?>
+
 	<form method="post">
 	  <div class="form-group">
 	    <label>Nama Barang</label>

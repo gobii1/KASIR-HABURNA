@@ -1,7 +1,7 @@
 <?php
 include 'authcheck.php';
 
-$view = $dbconnect->query('SELECT * FROM barang');
+$view = $dbconnect->query('SELECT * FROM barang ORDER BY id_barang');
 
 ?>
 
@@ -25,7 +25,7 @@ $view = $dbconnect->query('SELECT * FROM barang');
 	<hr>
 	<table class="table table-bordered">
 		<tr>
-			<th>ID Barang</th>
+			<th>No</th>
 			<th>Kode</th>
 			<th>Nama</th>
 			<th>Harga</th>
@@ -33,11 +33,11 @@ $view = $dbconnect->query('SELECT * FROM barang');
 			<th>Aksi</th>
 		</tr>
 		<?php
-
+        $no = 1;
         while ($row = $view->fetch_array()) { ?>
 
 		<tr>
-			<td> <?= $row['id_barang'] ?> </td>
+			<td> <?= $no++ ?>
 			<td> <?= $row['kode_barang'] ?> </td>
 			<td><?= $row['nama'] ?></td>
 			<td><?=$row['harga']?></td>

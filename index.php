@@ -2,122 +2,163 @@
 include 'config.php';
 session_start();
 
-// print_r($_SESSION);
-
-//fungsi dari membatasi hak akses
-
-if (isset($_SESSION['userid'])) {
-    if ($_SESSION['role_id'] == 2) {
-        //redirect ke halaman kasir.php
-        header('Location:kasir.php');
-    }
-} else {
+// Check user authentication and role
+if (!isset($_SESSION['userid'])) {
     $_SESSION['error'] = 'Anda harus login dahulu';
-    header('location:login.php');
+    header('Location: login.php');
+    exit;
 }
 
- ?>
-<!doctype html>
+if ($_SESSION['role_id'] == 2) {
+    header('Location: kasir.php');
+    exit;
+}
+
+$current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
+
+// Query untuk menghitung data
+    $totalBarangQuery = $dbconnect->query("SELECT COUNT(*) AS total FROM barang");
+    $totalBarang = $totalBarangQuery->fetch_assoc()['total'];
+
+    $totalUserQuery = $dbconnect->query("SELECT COUNT(*) AS total FROM user");
+    $totalUser = $totalUserQuery->fetch_assoc()['total'];
+
+    $totalRoleQuery = $dbconnect->query("SELECT COUNT(*) AS total FROM role");
+
+    $totalRole = $totalRoleQuery->fetch_assoc()['total'];
+
+    $totalDiskonQuery = $dbconnect->query("SELECT COUNT(*) AS total FROM disbarang");
+    $totalDiskon = $totalDiskonQuery->fetch_assoc()['total'];
+?>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Jekyll v4.0.1">
-    <title>Kasir PHP</title>
-
-    <!-- Bootstrap core CSS -->
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-      }
-
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            background-color: #343a40;
+            color: white;
         }
-      }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            display: block;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #495057;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
     </style>
-    <!-- Custom styles for this template -->
-    <link href="dashboard.css" rel="stylesheet">
-  </head>
-  <body>
-    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">KasirPHP</a>
-  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+</head>
+<body>
 
-  <ul class="navbar-nav px-3">
-    <li class="nav-item text-nowrap">
-      <a class="nav-link" href="logout.php">Logout</a>
-    </li>
-  </ul>
-</nav>
+<div class="sidebar">
+    <h2 class="text-center py-3">KasirPHP</h2>
+    <a href="index.php?page=home" class="<?= $current_page == 'home' ? 'active' : '' ?>">Dashboard</a>
+    <a href="index.php?page=barang" class="<?= $current_page == 'barang' ? 'active' : '' ?>">Barang</a>
+    <a href="index.php?page=role" class="<?= $current_page == 'role' ? 'active' : '' ?>">Role</a>
+    <a href="index.php?page=user" class="<?= $current_page == 'user' ? 'active' : '' ?>">User</a>
+    <a href="index.php?page=dis_barang" class="<?= $current_page == 'dis_barang' ? 'active' : '' ?>">Diskon Barang</a>
+    <a href="logout.php">Logout</a>
+</div>
 
-<div class="container-fluid">
-  <div class="row">
-    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-      <div class="sidebar-sticky pt-3">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link active" href="/">
-              <span data-feather="home"></span>
-              Dashboard <span class="sr-only">(current)</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="index.php?page=barang">
-              <span data-feather="file"></span>
-              Barang
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="index.php?page=role">
-              <span data-feather="shopping-cart"></span>
-              Role
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="index.php?page=user">
-              <span data-feather="users"></span>
-              User
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="index.php?page=dis_barang">
-              <span data-feather="bar-chart-2"></span>
-              Diskon Barang
-            </a>
-          </li>
-        </ul>
-      </div>
+<div class="content">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Admin Panel</a>
+        </div>
     </nav>
 
-    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">Dashboard</h1>
-	  </div>
-    <?php
+    <div class="container-fluid">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
+            <?php if ($current_page != 'home') : ?>
+                <li class="breadcrumb-item active"><?= ucfirst($current_page) ?></li>
+            <?php endif; ?>
+        </ol>
 
-      if (isset($_GET['page']) && $_GET['page'] != '') {
-          include 'page/' . $_GET['page'] . '.php';
-      } else {
-          include 'page/home.php';
-      }
-    ?>
-    </main>
-  </div>
+        <h1 class="mb-4">Dashboard</h1>
+
+        <!-- Statistics Section -->
+        <div class="container">
+    <div class="row">
+        <!-- Total Barang -->
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Barang</h5>
+                    <p class="card-text"><?= $totalBarang ?></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total User -->
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total User</h5>
+                    <p class="card-text"><?= $totalUser ?></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Role -->
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Role</h5>
+                    <p class="card-text"><?= $totalRole ?></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diskon Aktif -->
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Diskon Aktif</h5>
+                    <p class="card-text"><?= $totalDiskon ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+
+        <!-- Dynamic Page Content -->
+        <?php
+        if (isset($_GET['page']) && file_exists('page/' . $_GET['page'] . '.php')) {
+            include 'page/' . $_GET['page'] . '.php';
+        } else {
+            include 'page/home.php';
+        }
+        ?>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
